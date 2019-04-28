@@ -18,6 +18,22 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\src\declare.cpp" />
+    <ClCompile Include="Source\src\main.cpp" />
+    <ClCompile Include="Source\src\PCB.cpp" />
+    <ClCompile Include="Source\src\thread.cpp" />
+    <ClCompile Include="Source\src\userMain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\h\declare.h" />
+    <ClInclude Include="Source\h\idle.h" />
+    <ClInclude Include="Source\h\PCB.h" />
+    <ClInclude Include="Source\h\PCBList.h" />
+    <ClInclude Include="Source\h\schedule.h" />
+    <ClInclude Include="Source\h\thread.h" />
+    <ClInclude Include="Source\h\userMain.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{AFD42755-2CC7-4705-A200-A58554EFBD20}</ProjectGuid>
@@ -114,8 +130,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
