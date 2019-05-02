@@ -1,47 +1,46 @@
-#include "../h/thread.h"
+#include "../h/Thread.h"
+#include "../h/PCB.h"
 #include "../h/PCBList.h"
-#include "../h/schedule.h"
 
-extern PCBList pcbList;
-extern PCB* running;
-extern PCB* idlePCB;
-void dispatch();
+const StackSize defaultStackSize = 4096;
+const Time defaultTimeSlice = 2;
 
-void Thread::start() {
-	if (this->myPCB != idlePCB && this->myPCB->status != ThreadStatus::TERMINATED) {
-		myPCB->status = ThreadStatus::READY;
-		Scheduler::put(myPCB);
-	}
-}
+extern int changeContext;
+void interrupt timer();
 
-void Thread::waitToComplete() {
-	//ako running nije this i nit nije TERMINATED blokiraj je
-	if (running != this->myPCB && this->myPCB->status != ThreadStatus::TERMINATED) {
-		running->status = ThreadStatus::BLOCKED;
-		dispatch();
-	}
-}
-
-Thread::~Thread() {
-	waitToComplete();
-	delete myPCB;
-}
-
-ID Thread::getId() {
-	return myPCB->id;
-}
-
-ID Thread::getRunningId() {
-	if (running)
-		return running->id;
-	return 0;
-}
-
-Thread * Thread::getThreadById(ID id) {
-	Thread *t = pcbList.getThreadById(id);
-	return t;
+void dispatch(){ // sinhrona promena konteksta
+	lock
+	changeContext = 1;
+	timer();
+	unlock
 }
 
 Thread::Thread(StackSize stackSize, Time timeSlice) {
+	lock
 	myPCB = new PCB(stackSize, timeSlice, this);
+	unlock
+}
+
+Thread::~Thread() {
+	delete myPCB;
+}
+
+void Thread::start() {
+	myPCB->start();
+}
+
+void Thread::waitToComplete() {
+	myPCB->waitToComplete();
+}
+
+ID Thread::getId() {
+	return myPCB->getId();
+}
+
+ID Thread::getRunningId() {
+	return PCB::running->getId();
+}
+
+Thread* Thread::getThreadById(ID id) {
+	return PCB::allPCBs.getPCBById(id)->myThread;
 }

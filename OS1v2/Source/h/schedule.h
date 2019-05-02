@@ -7,8 +7,8 @@ class PCB;
 
 class Scheduler {
 public:
-	static void put(PCB *) {}
-	static PCB* get() { return 0; }
+	static void put(PCB *);
+	static PCB* get();
 };
 
 #endif // !_shedule_h_

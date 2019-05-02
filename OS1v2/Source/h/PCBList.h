@@ -1,55 +1,29 @@
 #ifndef _pcb_list_h_
 #define _pcb_list_h_
-#include "PCB.h"
+#include "../h/declare.h"
 
+class PCB;
+//PCB LIST CLASS
 class PCBList {
+private:
 	struct Elem {
 		PCB *p;
-		Elem *next;
-		Elem(PCB *p, Elem *next = 0) {
-			this->p = p;
-			this->next = next;
-		}
+		Elem *next, *prev;
+		Elem(PCB *pp, Elem *pr, Elem *nn);
 	};
 
 	Elem *first, *last;
 	int n;
 public:
-	PCBList() {
-		first = last = 0;
-		n = 0;
-	}
+	friend class PCB;
+	PCBList();
+	~PCBList();
 
-	~PCBList() {
-		while (first) {
-			last = first;
-			first = first->next;
-			delete last;
-		}
-		first = last = 0;
-		n = 0;
-	}
-
-	PCBList& add(PCB *p) {
-		last = (!first ? first : last->next) = new Elem(p);
-		++n;
-		return *this;
-	}
-
-	Thread* getThreadById(ID id) {
-		for (Elem *cur = first; cur; cur = cur->next) {
-			if (cur->p->myThread->getId() == id)
-				return cur->p->myThread;
-		}
-		return 0;
-	}
-
-	PCB* getPCBById(ID id) {
-		for (Elem *cur = first; cur; cur = cur->next) {
-			if (cur->p->myThread && cur->p->myThread->getId() == id)
-				return cur->p;
-		}
-		return 0;
-	}
+	int size();
+	void add(PCB *pp);
+	void remove(ID id);
+	void informThem();
+	PCB* getPCBById(ID id);
 };
-#endif // !_pcb_list_h_
+
+#endif

@@ -1,47 +1,90 @@
+#include <stdio.h>
 #include <dos.h>
 #include "../h/PCB.h"
 #include "../h/PCBList.h"
-#define PSW_INIT_VALUE 512
+#include "../h/Thread.h"
+#include "../h/schedule.h"
+#include "../h/declare.h"
 
-extern PCB* running;
-extern PCBList pcbList;
+extern int debug;
+
 void dispatch();
 
-ID PCB::ThreadID = 0;
+int PCB::sID = 0;
+PCB* PCB::running = 0;
+PCB* PCB::idlePCB = 0;
+PCBList PCB::allPCBs;
 
-PCB::PCB(StackSize size, Time slice, Thread * thread) {
+ID PCB::getId() {
+	return id;
+}
+
+ID PCB::getRunningId() {
+	return PCB::running->id;
+}
+
+void PCB::wrapper() {
+	PCB::running->myThread->run();
+	PCB::running->status = TERMINATED;
+	PCB::running->waitingForMe.informThem();
+	dispatch();
+}
+
+PCB::PCB(StackSize size, Time slice, Thread *t) {
 	if (size > 65536)
 		size = 65536;
-
-	id = ++ThreadID;
-	myThread = thread;
+	size /= sizeof(unsigned);
+	id = ++sID;
+	myThread = t;
 	timeSlice = slice;
-	status = ThreadStatus::NEW;
+	status = NEW;
 	stack = 0;
+	amWaitingFor = 0;
 
 	//da li se alocira char ili unsigned?
-	//for mainPCB we don't need to allocate stack
 	if (size > 0) {
-		stack = new unsigned[size / sizeof(unsigned)];
-		stack[size - 1] = PSW_INIT_VALUE;
-		stack[size - 2] = 0;// FP_SEG(PCB::wrapper);
-		stack[size - 3] = 0;// FP_OFF(PCB::wrapper);
+		lock
+		stack = new unsigned[size];
+		unlock
+		stack[size - 1] = 0x200;
+#ifndef BCC_BLOCK_IGNORE
+		stack[size - 2] = FP_SEG(PCB::wrapper);
+		stack[size - 3] = FP_OFF(PCB::wrapper);
+#endif
 	}
-
-	bp = sp = 0;// FP_OFF((char*)stack + size - 12);
-	ss = 0;// FP_SEG((char*)stack + size - 12);
-
-	pcbList.add(this);
+	sp = bp = ss = 0;
+#ifndef BCC_BLOCK_IGNORE
+	bp = FP_OFF(stack + size - 12);
+	sp = bp;
+	ss = FP_SEG(stack + size - 12);
+#endif
+	PCB::allPCBs.add(this);
 }
 
 PCB::~PCB() {
+	waitToComplete();
+	PCB::allPCBs.remove(this->getId());
 	if(stack)
 		delete stack;
 	stack = 0;
 }
 
-void PCB::wrapper() {
-	running->myThread->run();
-	running->status = TERMINATED;
-	dispatch();
+void PCB::start() {
+	lock
+	if(this != PCB::idlePCB && this->status == NEW) {
+		this->status = READY;
+		Scheduler::put(this);
+	}
+	unlock
+}
+
+void PCB::waitToComplete() {
+	if(this != PCB::running && this != PCB::idlePCB && this->status != TERMINATED && this->status != NEW) {
+		lock
+		PCB::running->status = BLOCKED;
+		PCB::running->amWaitingFor++;
+		this->waitingForMe.add(PCB::running);
+		unlock
+		dispatch();
+	}
 }
