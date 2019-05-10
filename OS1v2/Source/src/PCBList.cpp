@@ -31,7 +31,9 @@ void PCBList::remove(ID id) {
 	while(cur && cur->p->getId() != id) {
 		cur = cur->next;
 	}
+
 	if(!cur) return;
+
 	if(cur->prev) cur->prev->next = cur->next;
 	if(cur->next) cur->next->prev = cur->prev;
 	if(cur == first) first = first->next;
@@ -42,14 +44,12 @@ void PCBList::remove(ID id) {
 
 void PCBList::informThem() {
 	for(Elem *cur = first; cur; cur = cur->next) {
-		cur->p->amWaitingFor--;
-		if(cur->p->amWaitingFor == 0) {
-			lock
-			cur->p->status = READY;
-			Scheduler::put(cur->p);
-			unlock
-		}
+		lock
+		cur->p->status = READY;
+		Scheduler::put(cur->p);
+		unlock
 	}
+	deleteAll();
 }
 
 PCB* PCBList::getPCBById(ID id) {
@@ -60,7 +60,7 @@ PCB* PCBList::getPCBById(ID id) {
 	return 0;
 }
 
-PCBList::~PCBList() {
+void PCBList::deleteAll() {
 	while(first) {
 		last = first;
 		first = first->next;
@@ -68,4 +68,8 @@ PCBList::~PCBList() {
 	}
 	first = last = 0;
 	n = 0;
+}
+
+PCBList::~PCBList() {
+	deleteAll();
 }

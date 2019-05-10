@@ -14,6 +14,8 @@ private:
 
 	Elem *first, *last;
 	int n;
+
+	void deleteAll();
 public:
 	friend class PCB;
 	PCBList();

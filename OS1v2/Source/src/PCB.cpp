@@ -2,9 +2,9 @@
 #include <dos.h>
 #include "../h/PCB.h"
 #include "../h/PCBList.h"
-#include "../h/Thread.h"
 #include "../h/schedule.h"
 #include "../h/declare.h"
+#include "../h/thread.h"
 
 extern int debug;
 
@@ -39,9 +39,7 @@ PCB::PCB(StackSize size, Time slice, Thread *t) {
 	timeSlice = slice;
 	status = NEW;
 	stack = 0;
-	amWaitingFor = 0;
 
-	//da li se alocira char ili unsigned?
 	if (size > 0) {
 		lock
 		stack = new unsigned[size];
@@ -82,7 +80,6 @@ void PCB::waitToComplete() {
 	if(this != PCB::running && this != PCB::idlePCB && this->status != TERMINATED && this->status != NEW) {
 		lock
 		PCB::running->status = BLOCKED;
-		PCB::running->amWaitingFor++;
 		this->waitingForMe.add(PCB::running);
 		unlock
 		dispatch();

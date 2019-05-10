@@ -3,10 +3,9 @@
 #include "../h/KerSem.h"
 #include "../h/declare.h"
 
-BlockedQueue::Elem::Elem(PCB *pp, Time t, KernelSem *kersem, int w) {
+BlockedQueue::Elem::Elem(PCB *pp, Time t, int w) {
 	pcb = pp;
 	time = t;
-	ks = kersem;
 	wait = w;
 	next = 0;
 }
@@ -24,6 +23,7 @@ void BlockedQueue::add(Elem *e) {
 }
 
 BlockedQueue::Elem* BlockedQueue::get() {
+	if(n == 0) return 0;
 	Elem *cur = first;
 	first = first->next; n--;
 	cur->next = 0;
@@ -44,7 +44,7 @@ void BlockedQueue::remove(Elem *e) {
 	else first = cur->next;
 	if(!cur->next) {
 		last = prev;
-		last->next = 0;
+		if(last) last->next = 0;
 	}
 	n--;
 }

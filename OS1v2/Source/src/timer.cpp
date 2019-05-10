@@ -6,21 +6,20 @@
 
 extern volatile int cpuTime;
 extern volatile int changeContext;
-extern int debug;
 
-unsigned tsp;
-unsigned tss;
-unsigned tbp;
+static unsigned tsp;
+static unsigned tss;
+static unsigned tbp;
 
-void tick();
+void tick() {}
 
-void interrupt timer() {
+void interrupt timer(...) {
 	if (!changeContext && cpuTime > 0) cpuTime--;
-	//odbroji 1 svim nitima koje cekaju na svim semaforima
+
 	KernelSem::allKernelSemsTick();
 
-	if ((cpuTime == 0 && PCB::running->timeSlice!=0) || changeContext) {
-		//save necessary registers inside PCB
+	if ((cpuTime == 0 && PCB::running->timeSlice != 0) || changeContext) {
+
 #ifndef BCC_BLOCK_IGNORE
 		asm{
 			mov tsp, sp
@@ -29,7 +28,6 @@ void interrupt timer() {
 		}
 #endif
 
-		//save running PCB context
 		PCB::running->sp = tsp;
 		PCB::running->ss = tss;
 		PCB::running->bp = tbp;
@@ -41,11 +39,10 @@ void interrupt timer() {
 
 		PCB::running = Scheduler::get();
 
-		//if no running, run idle thread
 		if (!PCB::running)
 			PCB::running = PCB::idlePCB;
 		PCB::running->status = RUNNING;
-		//load new context
+
 		tsp = PCB::running->sp;
 		tss = PCB::running->ss;
 		tbp = PCB::running->bp;
@@ -62,8 +59,7 @@ void interrupt timer() {
 
 	if(!changeContext) {
 #ifndef BCC_BLOCK_IGNORE
-		//call tick function and old interrupt routine
-		//tick();
+		tick();
 		asm int 60h;
 #endif
 	}

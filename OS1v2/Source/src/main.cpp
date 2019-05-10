@@ -4,11 +4,10 @@
 #include "../h/schedule.h"
 #include "../h/PCB.h"
 #include "../h/PCBList.h"
-#include "../h/Thread.h"
 #include "../h/idleThr.h"
+#include "../h/semaphor.h"
 #include "../h/declare.h"
-
-#include "../h/KerSem.h"
+#include "../h/thread.h"
 
 
 volatile int cpuTime = 0;
@@ -31,10 +30,12 @@ int main(int argc, char* argv[]) {
 	PCB::idlePCB = PCB::allPCBs.getPCBById(idleThread->getId());
 	init();
 
-	KernelSem ks(0);
+	Semaphore ks(2);
+	int x;
 	for(int i = 0; i < 5; i++) {
 		syncPrintf("%d\n", i);
-		ks.wait(18*55);
+		x = ks.wait(18*55);
+		syncPrintf("wait returned %d\n", x);
 	}
 	int retval = userMain(argc, argv);
 

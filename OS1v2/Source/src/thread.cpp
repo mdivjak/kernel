@@ -1,14 +1,14 @@
-#include "../h/Thread.h"
 #include "../h/PCB.h"
 #include "../h/PCBList.h"
+#include "../h/thread.h"
 
 const StackSize defaultStackSize = 4096;
 const Time defaultTimeSlice = 2;
 
 extern int changeContext;
-void interrupt timer();
+void interrupt timer(...);
 
-void dispatch(){ // sinhrona promena konteksta
+void dispatch() {
 	lock
 	changeContext = 1;
 	timer();

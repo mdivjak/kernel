@@ -3,8 +3,8 @@
 #include "../h/BlkQueue.h"
 #include "../h/PCB.h"
 #include "../h/schedule.h"
-#include "../h/Thread.h"
 #include "../h/declare.h"
+#include "../h/thread.h"
 
 KSList KernelSem::allKernelSems;
 
@@ -14,6 +14,12 @@ KernelSem::KernelSem(int init) {
 }
 
 KernelSem::~KernelSem() {
+	BlockedQueue::Elem *e = blockedQueue.get();
+	while(e) {
+		e->pcb->status = READY;
+		Scheduler::put(e->pcb);
+		e = blockedQueue.get();
+	}
 	allKernelSems.remove(this);
 }
 
@@ -24,7 +30,7 @@ int KernelSem::wait(Time maxTimeToWait) {
 	int retval = 1;
 	if(--v < 0) {
 		lock
-		BlockedQueue::Elem *e = new BlockedQueue::Elem(PCB::running, maxTimeToWait, this, (maxTimeToWait ? 1 : 0));
+		BlockedQueue::Elem *e = new BlockedQueue::Elem(PCB::running, maxTimeToWait, (maxTimeToWait ? 1 : 0));
 		blockedQueue.add(e);
 		PCB::running->status = BLOCKED;
 		unlock
@@ -64,17 +70,13 @@ int KernelSem::signal(int n) {
 }
 
 void KernelSem::allKernelSemsTick() {
-	KSList::Elem *cur = allKernelSems.first;
-	for(; cur; cur = cur->next) {
-		KernelSem *ks = cur->ks;
-		BlockedQueue::Elem *e = ks->blockedQueue.first;
-		for(; e; e = e->next) {
+	for(KSList::Elem *cur = allKernelSems.first; cur; cur = cur->next) {
+		for(BlockedQueue::Elem *e = cur->ks->blockedQueue.first; e; e = e->next) {
 			if(e->time > 0) e->time--;
 			if(e->time == 0 && e->wait == 1) {
 				lock
-				ks->blockedQueue.remove(e);
-				//da li treba da se poveca val?
-				//ks->v++;
+				cur->ks->blockedQueue.remove(e);
+				cur->ks->v++;
 				e->pcb->status = READY;
 				Scheduler::put(e->pcb);
 				unlock

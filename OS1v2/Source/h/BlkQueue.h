@@ -10,10 +10,9 @@ private:
 	struct Elem {
 		PCB *pcb;
 		Time time;
-		KernelSem *ks;
 		int wait;
 		Elem *next;
-		Elem(PCB *pp, Time t, KernelSem *ks, int w);
+		Elem(PCB *pp, Time t, int w);
 	};
 
 	Elem *first, *last;

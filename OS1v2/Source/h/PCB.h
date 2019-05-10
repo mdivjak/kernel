@@ -21,7 +21,6 @@ public:
 	unsigned *stack;
 	int status;
 	ID id;
-	int amWaitingFor;
 	PCBList waitingForMe;
 	Thread *myThread;
 
