@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "../h/PCB.h"
+#include "../h/KerSem.h"
 #include "../h/schedule.h"
 #include "../h/declare.h"
 
@@ -15,6 +16,9 @@ void tick();
 
 void interrupt timer() {
 	if (!changeContext && cpuTime > 0) cpuTime--;
+	//odbroji 1 svim nitima koje cekaju na svim semaforima
+	KernelSem::allKernelSemsTick();
+
 	if ((cpuTime == 0 && PCB::running->timeSlice!=0) || changeContext) {
 		//save necessary registers inside PCB
 #ifndef BCC_BLOCK_IGNORE
@@ -59,7 +63,7 @@ void interrupt timer() {
 	if(!changeContext) {
 #ifndef BCC_BLOCK_IGNORE
 		//call tick function and old interrupt routine
-		tick();
+		//tick();
 		asm int 60h;
 #endif
 	}
