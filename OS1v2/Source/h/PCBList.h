@@ -3,7 +3,7 @@
 #include "../h/declare.h"
 
 class PCB;
-//PCB LIST CLASS
+
 class PCBList {
 private:
 	struct Elem {

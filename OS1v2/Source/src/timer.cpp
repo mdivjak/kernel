@@ -11,7 +11,7 @@ static unsigned tsp;
 static unsigned tss;
 static unsigned tbp;
 
-void tick() {}
+void tick();
 
 void interrupt timer(...) {
 	if (!changeContext && cpuTime > 0) cpuTime--;

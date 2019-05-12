@@ -7,7 +7,6 @@ class PCB;
 extern const StackSize defaultStackSize;
 extern const Time defaultTimeSlice;
 
-//THREAD_CLASS
 class Thread {
 public:
 	void start();

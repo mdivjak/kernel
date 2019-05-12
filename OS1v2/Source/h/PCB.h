@@ -5,7 +5,7 @@
 
 
 class Thread;
-//PCB CLASS
+
 class PCB {
 private:
 	static int sID;

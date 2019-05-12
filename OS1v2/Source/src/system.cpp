@@ -8,8 +8,8 @@ static pInterrupt oldRoutine;
 void init() {
 #ifndef BCC_BLOCK_IGNORE
 	asm cli;
-	oldRoutine = getvect(0x1C);
-	setvect(0x1C, timer);
+	oldRoutine = getvect(0x8);
+	setvect(0x8, timer);
 	setvect(0x60, oldRoutine);
 	asm sti;
 #endif
@@ -18,7 +18,7 @@ void init() {
 void restore() {
 #ifndef BCC_BLOCK_IGNORE
 	asm cli;
-	setvect(0x1C, oldRoutine);
+	setvect(0x8, oldRoutine);
 	asm sti;
 #endif
 }

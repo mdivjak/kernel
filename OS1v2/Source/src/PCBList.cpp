@@ -49,6 +49,7 @@ void PCBList::informThem() {
 		Scheduler::put(cur->p);
 		unlock
 	}
+	//	da li ovo treba
 	deleteAll();
 }
 

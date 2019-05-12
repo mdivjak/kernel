@@ -6,10 +6,6 @@
 #include "../h/declare.h"
 #include "../h/thread.h"
 
-extern int debug;
-
-void dispatch();
-
 int PCB::sID = 0;
 PCB* PCB::running = 0;
 PCB* PCB::idlePCB = 0;
@@ -70,6 +66,7 @@ PCB::~PCB() {
 void PCB::start() {
 	lock
 	if(this != PCB::idlePCB && this->status == NEW) {
+		syncPrintf("Starting %d\n", id);
 		this->status = READY;
 		Scheduler::put(this);
 	}
@@ -78,8 +75,10 @@ void PCB::start() {
 
 void PCB::waitToComplete() {
 	if(this != PCB::running && this != PCB::idlePCB && this->status != TERMINATED && this->status != NEW) {
+		syncPrintf("%d waiting %d\n", PCB::running->id, id);
 		lock
 		PCB::running->status = BLOCKED;
+		//amWaitingFor++
 		this->waitingForMe.add(PCB::running);
 		unlock
 		dispatch();
