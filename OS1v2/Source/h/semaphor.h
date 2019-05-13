@@ -10,7 +10,7 @@ public:
 	virtual ~Semaphore();
 
 	virtual int wait(Time maxTimeToWait);
-	virtual void signal(int n = 0);
+	virtual int signal(int n = 0);
 
 	int val() const;
 private:

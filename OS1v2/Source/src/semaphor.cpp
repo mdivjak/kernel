@@ -14,8 +14,8 @@ int Semaphore::wait(Time maxTimeToWait) {
 	return myImpl->wait(maxTimeToWait);
 }
 
-void Semaphore::signal(int n) {
-	myImpl->signal(n);
+int Semaphore::signal(int n) {
+	return myImpl->signal(n);
 }
 
 int Semaphore::val() const {

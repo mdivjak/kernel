@@ -12,34 +12,19 @@ int t=-1;
 
 const int n=15;
 
-Semaphore s(1);
+Semaphore sem(0);
 
-class TestThread : public Thread
-{
+class TestThread : public Thread {
 private:
-	Time waitTime;
-
+	char c;
 public:
-
-	TestThread(Time WT): Thread(), waitTime(WT){}
-	~TestThread()
-	{
-		waitToComplete();
+	TestThread(char c) : Thread() { this->c = c; }
+	virtual ~TestThread() { waitToComplete(); }
+	void run() {
+		sem.wait(0);
+		syncPrintf("%c\n", c);
 	}
-protected:
-
-	void run();
-
 };
-
-void TestThread::run()
-{
-	syncPrintf("Thread %d waits for %d units of time.\n",getId(),waitTime);
-	int r = s.wait(waitTime*55);
-	if(getId()%2)
-		s.signal();
-	syncPrintf("Thread %d finished: r = %d\n", getId(),r);
-}
 
 void tick()
 {
@@ -50,20 +35,24 @@ void tick()
 
 int userMain(int argc, char** argv)
 {
-	syncPrintf("Test starts.\n");
-	TestThread* t[n];
 	int i;
-	for(i=0;i<n;i++)
-	{
-		t[i] = new TestThread(5*(i+1));
-		t[i]->start();
+	TestThread **niz = new TestThread*[10];
+	for(i = 0; i < 10; i++) {
+		niz[i] = new TestThread('A'+i);
+		niz[i]->start();
 	}
-	for(i=0;i<n;i++)
-	{
-		t[i]->waitToComplete();
+	Semaphore cekanje(0);
+	cekanje.wait(36*55);
+	syncPrintf("sem.val = %d\n", sem.val());
+	int ret = sem.signal(-5);
+		syncPrintf("\nsem.signal(3) returned %d\n", ret);
+	syncPrintf("sem.val = %d\n", sem.val());
+	for(i = 0; i < 10; i++) {
+		delete niz[i];
 	}
-	delete t;
-	syncPrintf("Test ends.\n");
+
+	delete niz;
+	niz = 0;
 	return 0;
 }
 

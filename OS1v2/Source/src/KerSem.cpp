@@ -16,6 +16,7 @@ KernelSem::KernelSem(int init) {
 KernelSem::~KernelSem() {
 	BlockedQueue::Elem *e = blockedQueue.get();
 	while(e) {
+		syncPrintf("Unblocking %d\n", e->pcb->id);
 		e->pcb->status = READY;
 		Scheduler::put(e->pcb);
 		e = blockedQueue.get();
@@ -31,16 +32,11 @@ int KernelSem::wait(Time maxTimeToWait) {
 	if(--v < 0) {
 		lock
 		BlockedQueue::Elem *e = new BlockedQueue::Elem(PCB::running, maxTimeToWait, (maxTimeToWait ? 1 : 0));
-		syncPrintf("%d waiting for max %d\n", PCB::running->id, maxTimeToWait);
 		blockedQueue.add(e);
 		PCB::running->status = BLOCKED;
 		unlock
 		dispatch();
 		retval = (e->time == 0 && maxTimeToWait) ? 0 : 1;
-		if(!retval)
-			syncPrintf("%d time exceeded\n", PCB::running->id);
-		else
-			syncPrintf("%d signal came through\n", PCB::running->id);
 		delete e;
 	}
 	return retval;
