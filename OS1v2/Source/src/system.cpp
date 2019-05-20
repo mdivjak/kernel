@@ -1,8 +1,7 @@
 #include <dos.h>
+#include "../h/declare.h"
 
 void interrupt timer(...);
-typedef void interrupt (*pInterrupt)(...);
-
 static pInterrupt oldRoutine;
 
 void init() {

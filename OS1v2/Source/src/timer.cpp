@@ -16,8 +16,6 @@ void tick();
 void interrupt timer(...) {
 	if (!changeContext && cpuTime > 0) cpuTime--;
 
-	KernelSem::allKernelSemsTick();
-
 	if ((cpuTime == 0 && PCB::running->timeSlice != 0) || changeContext) {
 
 #ifndef BCC_BLOCK_IGNORE
@@ -59,6 +57,7 @@ void interrupt timer(...) {
 
 	if(!changeContext) {
 #ifndef BCC_BLOCK_IGNORE
+		KernelSem::allKernelSemsTick();
 		tick();
 		asm int 60h;
 #endif

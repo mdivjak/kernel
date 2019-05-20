@@ -27,7 +27,6 @@ KernelSem::~KernelSem() {
 int KernelSem::val() const { return v; }
 
 int KernelSem::wait(Time maxTimeToWait) {
-	maxTimeToWait /= 55;
 	int retval = 1;
 	if(--v < 0) {
 		lock

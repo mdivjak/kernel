@@ -11,7 +11,7 @@ void interrupt timer(...);
 void dispatch() {
 	lock
 	changeContext = 1;
-	timer();
+	asm int 8h;
 	unlock
 }
 
