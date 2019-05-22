@@ -1,10 +1,22 @@
 #include <dos.h>
 #include "../h/declare.h"
+#include "../h/PCB.h"
+#include "../h/thread.h"
+#include "../h/idleThr.h"
 
 void interrupt timer(...);
 static pInterrupt oldRoutine;
 
+extern volatile int cpuTime;
+Thread* idleThread = 0;
+
 void init() {
+	cpuTime = 5;
+	PCB::running = new PCB(0, 5, 0);
+	PCB::running->status = RUNNING;
+	idleThread = new IdleThread();
+	PCB::idlePCB = PCB::allPCBs.getPCBById(idleThread->getId());
+
 #ifndef BCC_BLOCK_IGNORE
 	asm cli;
 	oldRoutine = getvect(0x8);

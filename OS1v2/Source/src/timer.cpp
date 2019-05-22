@@ -35,24 +35,32 @@ void interrupt timer(...) {
 			Scheduler::put(PCB::running);
 		}
 
-		PCB::running = Scheduler::get();
+		while(1) {
+			PCB::running = Scheduler::get();
 
-		if (!PCB::running)
-			PCB::running = PCB::idlePCB;
-		PCB::running->status = RUNNING;
+			/*while(PCB::running && PCB::running->handleSignals()) {
+				PCB::running = Scheduler::get();
+			}*/
 
-		tsp = PCB::running->sp;
-		tss = PCB::running->ss;
-		tbp = PCB::running->bp;
-		cpuTime = PCB::running->timeSlice;
+			if (!PCB::running)
+				PCB::running = PCB::idlePCB;
+			PCB::running->status = RUNNING;
+
+			tsp = PCB::running->sp;
+			tss = PCB::running->ss;
+			tbp = PCB::running->bp;
+			cpuTime = PCB::running->timeSlice;
 
 #ifndef BCC_BLOCK_IGNORE
-		asm{
-			mov sp, tsp
-			mov ss, tss
-			mov bp, tbp
-		}
+			asm{
+				mov sp, tsp
+				mov ss, tss
+				mov bp, tbp
+			}
 #endif
+			if(PCB::running == PCB::idlePCB) break;
+			if(!PCB::running->handleSignals()) break;
+		}
 	}
 
 	if(!changeContext) {

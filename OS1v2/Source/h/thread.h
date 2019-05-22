@@ -24,6 +24,19 @@ protected:
 
 private:
 	PCB* myPCB;
+
+public:
+	//SIGNALI
+	void signal(SignalId signal);
+
+	void registerHandler(SignalId signal, SignalHandler handler);
+	void unregisterAllHandlers(SignalId id);
+	void swap(SignalId id, SignalHandler hand1, SignalHandler hand2);
+
+	void blockSignal(SignalId signal);
+	static void blockSignalGlobally(SignalId signal);
+	void unblockSignal(SignalId signal);
+	static void unblockSignalGlobally(SignalId signal);
 };
 
 void dispatch();
