@@ -20,10 +20,10 @@ int PCBList::size() {
 
 void PCBList::add(PCB *pp) {
 	//mora atomicno jer se koristi new
-	lock
+lock();
 	last = (!first ? first : last->next) = new Elem(pp, last);
 	n++;
-	unlock
+unlock();
 }
 
 void PCBList::remove(ID id) {
@@ -34,20 +34,23 @@ void PCBList::remove(ID id) {
 
 	if(!cur) return;
 
+lock();
 	if(cur->prev) cur->prev->next = cur->next;
 	if(cur->next) cur->next->prev = cur->prev;
 	if(cur == first) first = first->next;
 	if(cur == last) last = last->prev;
 	n--;
 	delete cur;
+unlock();
+
 }
 
 void PCBList::informThem() {
 	for(Elem *cur = first; cur; cur = cur->next) {
-		lock
+lock();
 		cur->p->status = READY;
 		Scheduler::put(cur->p);
-		unlock
+unlock();
 	}
 	//	da li ovo treba
 	deleteAll();

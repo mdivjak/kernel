@@ -15,10 +15,10 @@ KSList::KSList() {
 int KSList::size() const { return n; }
 
 void KSList::add(KernelSem *kersem) {
-	lock
-	last = (!first ? first : last->next) = new Elem(kersem, last);
+lock();
+	last = (!first ? first : last->next) = new KSList::Elem(kersem, last);
 	n++;
-	unlock
+unlock();
 }
 
 void KSList::remove(KernelSem *ks) {
@@ -26,12 +26,16 @@ void KSList::remove(KernelSem *ks) {
 	while(cur && cur->ks != ks) cur = cur->next;
 
 	if(!cur) return;
+
+lock();
 	if(cur->prev) cur->prev->next = cur->next;
 	if(cur->next) cur->next->prev = cur->prev;
 	if(cur == first) first = first->next;
 	if(cur == last) last = last->prev;
 	n--;
 	delete cur;
+unlock();
+
 }
 
 KSList::~KSList() {

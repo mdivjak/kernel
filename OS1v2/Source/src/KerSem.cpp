@@ -14,6 +14,8 @@ KernelSem::KernelSem(int init) {
 }
 
 KernelSem::~KernelSem() {
+
+lock();
 	BlockedQueue::Elem *e = blockedQueue.get();
 	while(e) {
 		syncPrintf("Unblocking %d\n", e->pcb->id);
@@ -21,6 +23,8 @@ KernelSem::~KernelSem() {
 		Scheduler::put(e->pcb);
 		e = blockedQueue.get();
 	}
+unlock();
+
 	allKernelSems.remove(this);
 }
 
@@ -29,12 +33,12 @@ int KernelSem::val() const { return v; }
 int KernelSem::wait(Time maxTimeToWait) {
 	int retval = 1;
 	if(--v < 0) {
-		lock
+lock();
 		BlockedQueue::Elem *e = new BlockedQueue::Elem(PCB::running, maxTimeToWait, (maxTimeToWait ? 1 : 0));
 		blockedQueue.add(e);
 		PCB::running->status = BLOCKED;
-		unlock
-		dispatch();
+unlock();
+dispatch();
 		retval = (e->time == 0 && maxTimeToWait) ? 0 : 1;
 		delete e;
 	}
@@ -46,15 +50,18 @@ int KernelSem::signal(int n) {
 	if(n == 0) {
 		//obican signal
 		if(v++ < 0) {
-			lock
+
+lock();
 			BlockedQueue::Elem *e = blockedQueue.get();
 			e->pcb->status = READY;
 			Scheduler::put(e->pcb);
+unlock();
+
 			retval = 0;
-			unlock
 		}
 	} else if(n > 0) {
-		lock
+
+lock();
 		int i = 0;
 		while(i < n && blockedQueue.size() > 0) {
 			BlockedQueue::Elem *e = blockedQueue.get();
@@ -63,8 +70,9 @@ int KernelSem::signal(int n) {
 			i++;
 		}
 		v += n;
+unlock();
+
 		retval = i;
-		unlock
 	} else retval = n;
 	return retval;
 }
@@ -74,12 +82,14 @@ void KernelSem::allKernelSemsTick() {
 		for(BlockedQueue::Elem *e = cur->ks->blockedQueue.first; e; e = e->next) {
 			if(e->time > 0) e->time--;
 			if(e->time == 0 && e->wait == 1) {
-				lock
+
+lock();
 				cur->ks->blockedQueue.remove(e);
 				cur->ks->v++;
 				e->pcb->status = READY;
 				Scheduler::put(e->pcb);
-				unlock
+unlock();
+
 			}
 		}
 	}

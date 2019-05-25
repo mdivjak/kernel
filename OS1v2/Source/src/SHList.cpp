@@ -58,7 +58,7 @@ void SHList::signalize() {
 void SHList::add(SignalHandler s) {
 	//da li treba ova provera
 	if(contains(s)) return;
-	lock
+lock();
 	last = (!first ? first : last->next) = new Elem(s);
-	unlock
+unlock();
 }

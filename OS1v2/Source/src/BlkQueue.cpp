@@ -16,16 +16,20 @@ BlockedQueue::BlockedQueue() {
 }
 
 void BlockedQueue::add(Elem *e) {
-	lock
+lock();
 	last = (!first ? first : last->next) = e;
 	n++;
-	unlock
+unlock();
 }
 
 BlockedQueue::Elem* BlockedQueue::get() {
 	if(n == 0) return 0;
 	Elem *cur = first;
+
+lock();
 	first = first->next; n--;
+unlock();
+
 	cur->next = 0;
 	return cur;
 }
@@ -40,6 +44,7 @@ void BlockedQueue::remove(Elem *e) {
 	}
 	if(!cur) return;
 
+lock();
 	if(prev) prev->next = cur->next;
 	else first = cur->next;
 	if(!cur->next) {
@@ -47,6 +52,7 @@ void BlockedQueue::remove(Elem *e) {
 		if(last) last->next = 0;
 	}
 	n--;
+unlock();
 }
 
 BlockedQueue::~BlockedQueue() {

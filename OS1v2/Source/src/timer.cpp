@@ -16,7 +16,7 @@ void tick();
 void interrupt timer(...) {
 	if (!changeContext && cpuTime > 0) cpuTime--;
 
-	if ((cpuTime == 0 && PCB::running->timeSlice != 0) || changeContext) {
+	if ((lockCounter == 0 && cpuTime == 0 && PCB::running->timeSlice != 0) || changeContext) {
 
 #ifndef BCC_BLOCK_IGNORE
 		asm{

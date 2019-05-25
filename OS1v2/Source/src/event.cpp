@@ -3,15 +3,15 @@
 #include "../h/declare.h"
 
 Event::Event(IVTNo ivtNo) {
-	lock
+lock();
 	myImpl = new KernelEv(ivtNo);
-	unlock
+unlock();
 }
 
 Event::~Event() {
-	lock
+lock();
 	delete myImpl;
-	unlock
+unlock();
 }
 
 void Event::wait() {

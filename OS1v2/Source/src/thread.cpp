@@ -1,6 +1,7 @@
 #include "../h/PCB.h"
 #include "../h/PCBList.h"
 #include "../h/thread.h"
+#include "../h/declare.h"
 
 const StackSize defaultStackSize = 4096;
 const Time defaultTimeSlice = 2;
@@ -9,16 +10,16 @@ extern int changeContext;
 void interrupt timer(...);
 
 void dispatch() {
-	lock
+//lock();
 	changeContext = 1;
 	asm int 8h;
-	unlock
+//unlock();
 }
 
 Thread::Thread(StackSize stackSize, Time timeSlice) {
-	lock
+lock();
 	myPCB = new PCB(stackSize, timeSlice, this);
-	unlock
+unlock();
 }
 
 Thread::~Thread() {

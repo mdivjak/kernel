@@ -21,21 +21,21 @@ ID PCB::getRunningId() {
 
 void PCB::wrapper() {
 	PCB::running->myThread->run();
-	lock
+lock();
 	PCB::running->status = TERMINATED;
 	PCB::running->waitingForMe.informThem();
 
 	PCB::allowedSignals12 = 1;
 	if(PCB::running->parent != 0) {
-		syncPrintf("%d ima roditelja\n", PCB::running->id);
+		//syncPrintf("%d ima roditelja\n", PCB::running->id);
 		PCB::running->parent->signal(1);
 	}
 	PCB::running->signal(2);
 	PCB::allowedSignals12 = 0;
 
 	PCB::running->handleSignals();
-	unlock
-	dispatch();
+unlock();
+dispatch();
 }
 
 PCB::PCB(StackSize size, Time slice, Thread *t) {
@@ -62,9 +62,11 @@ PCB::PCB(StackSize size, Time slice, Thread *t) {
 	}
 
 	if (size > 0) {
-		lock
+
+lock();
 		stack = new unsigned[size];
-		unlock
+unlock();
+
 		stack[size - 1] = 0x200;
 #ifndef BCC_BLOCK_IGNORE
 		stack[size - 2] = FP_SEG(PCB::wrapper);
@@ -82,10 +84,6 @@ PCB::PCB(StackSize size, Time slice, Thread *t) {
 
 PCB::~PCB() {
 	waitToComplete();
-/*
-	PCB::allowedSignals12 = 1;
-	handleSignals();
-	PCB::allowedSignals12 = 0;*/
 
 	PCB::allPCBs.remove(this->getId());
 	if(stack)
@@ -94,23 +92,24 @@ PCB::~PCB() {
 }
 
 void PCB::start() {
-	lock
+lock();
 	if(this != PCB::idlePCB && this->status == NEW) {
 		syncPrintf("Starting %d\n", id);
 		this->status = READY;
 		Scheduler::put(this);
 	}
-	unlock
+unlock();
 }
 
 void PCB::waitToComplete() {
 	if(this != PCB::running && this != PCB::idlePCB && this->status != TERMINATED && this->status != NEW) {
+
+lock();
 		syncPrintf("%d waiting %d\n", PCB::running->id, id);
-		lock
 		PCB::running->status = BLOCKED;
 		this->waitingForMe.add(PCB::running);
-		unlock
-		dispatch();
+unlock();
+dispatch();
 	}
 }
 
@@ -169,6 +168,7 @@ void PCB::remove(Elem *e) {
 	}
 	if(!cur) return;
 
+lock();
 	if(prev) prev->next = cur->next;
 	else first = cur->next;
 	if(!cur->next) {
@@ -177,6 +177,7 @@ void PCB::remove(Elem *e) {
 			last->next = 0;
 	}
 	delete e;
+unlock();
 }
 
 int PCB::handleSignals() {
@@ -187,11 +188,13 @@ int PCB::handleSignals() {
 		old = 0;
 		if(!globalBlocks[sig] && !signalBlocks[sig]) {
 			syncPrintf("Nit %d: obradjujem signal %d\n", PCB::running->id, sig);
+
+lock();
+			handlers[sig].signalize();
+unlock();
+
 			if(sig == 0)
 				killed = 1;
-			lock
-			handlers[sig].signalize();
-			unlock
 			old = cur;
 		}
 		cur = cur->next;
@@ -207,7 +210,8 @@ int PCB::handleSignals() {
 
 void PCB::killSignal() {
 	syncPrintf("ubijam %d\n", PCB::running->id);
-	lock
+
+lock();
 	PCB::running->status = TERMINATED;
 	PCB::running->waitingForMe.informThem();
 
@@ -216,24 +220,22 @@ void PCB::killSignal() {
 		PCB::running->parent->signal(1);
 	PCB::running->signal(2);
 	PCB::allowedSignals12 = 0;
+unlock();
 
-	//PCB::running->handleSignals();
-	unlock
-	//dispatch();
 }
 
 void PCB::signal(SignalId signal) {
 	if(signal < 0 || signal > 15) return;
 	if(signal == 1 && PCB::allowedSignals12 == 0) {
-		syncPrintf("Ne primam signal 1 od %d\n", PCB::running->id);
+		//syncPrintf("Ne primam signal 1 od %d\n", PCB::running->id);
 		return;
 	}
 	if(signal == 2 && PCB::allowedSignals12 == 0) {
-		syncPrintf("Ne primam signal 2 od %d\n", PCB::running->id);
+		//syncPrintf("Ne primam signal 2 od %d\n", PCB::running->id);
 		return;
 	}
 	//syncPrintf("Nit %d: ubacujem signal %d\n", PCB::running->id, signal);
-	lock
+lock();
 	last = (!first ? first : last->next) = new Elem(signal);
-	unlock
+unlock();
 }

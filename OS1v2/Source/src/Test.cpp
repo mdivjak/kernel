@@ -1,16 +1,24 @@
 #include "../h/thread.h"
-#include "../h/PCB.h"
 #include "../h/declare.h"
 
-const int n = 2;
+/*
+ 	 Test: razlicita vremena izvrsavanja i velicine steka
+*/
 
-void tick(){}
+volatile Time ts;
+
+void tick()
+{
+	syncPrintf("timeSlice=%d\n",ts);
+}
 
 class TestThread : public Thread
 {
+private:
+	Time myTimeSlice;
 public:
 
-	TestThread(int k): Thread(4096, k) {};
+	TestThread(StackSize stackSize, Time timeSlice): Thread(stackSize,timeSlice), myTimeSlice(timeSlice) {};
 	~TestThread()
 	{
 		waitToComplete();
@@ -23,50 +31,30 @@ protected:
 
 void TestThread::run()
 {
-	for(int p = 0; p < 10; p++) {
-		syncPrintf("N%d\n", p);
-		for(int i = 0; i < 30000; i++)
-			for(int j = 0; j < 30000; j++);
+	for(unsigned i=0;i<32000;i++)
+	{
+		for(unsigned int j=0;j<32000;j++)
+		{
+			ts = myTimeSlice;
+		}
 	}
-}
-
-void fa() {
-	syncPrintf("A\n");
-}
-
-void fb() {
-	syncPrintf("B\n");
-}
-
-void fc() {
-	syncPrintf("C\n");
 }
 
 
 int userMain(int argc, char** argv)
 {
-	PCB::running->registerHandler(3, fb);
-	PCB::running->registerHandler(3, fc);
-	TestThread ta(2), tb(9), tc(12);
-	ta.registerHandler(3, fa);
-	ta.start();
-	ta.signal(3);
-	ta.swap(3, fb, fa);
-	/*for(int k = 0; k < 6; k++) {
-		for(int i = 0; i < 30000; i++) {
-			for(int j = 0; j < 30000; j++) {
-			}
-		}
-	}*/
-	for(int x = 0; x < 16; x++) {
-		for(int y = 0; y < 30000; y++) {
-			for(int z = 0; z < 30000; z++) {
-			}
-		}
-	}
-	ta.unregisterAllHandlers(3);
-	dispatch();
-	ta.signal(3);
+	syncPrintf("Test starts.\n");
+	TestThread t1(64,1), t2(4096,32), t3(1024,16), t4(4096,0);
+	t1.start();
+	t2.start();
+	t3.start();
+	t4.start();
+	t1.waitToComplete();
+	t2.waitToComplete();
+	t3.waitToComplete();
+	t4.waitToComplete();
+	syncPrintf("Test ends.\n");
 	return 0;
 }
+
 

@@ -1,4 +1,5 @@
 #include <dos.h>
+#include <stdio.h>
 #include "../h/declare.h"
 #include "../h/PCB.h"
 #include "../h/thread.h"
@@ -9,6 +10,17 @@ static pInterrupt oldRoutine;
 
 extern volatile int cpuTime;
 Thread* idleThread = 0;
+
+void lock() {
+	//("Nit %d: zakljucavam %d\n", PCB::running->id, lockCounter);
+	lockCounter++;
+}
+
+void unlock() {
+	//printf("\tNit %d: otkljucavam %d\n", PCB::running->id, lockCounter);
+	if(lockCounter == 0) return;
+	lockCounter--;
+}
 
 void init() {
 	cpuTime = 5;

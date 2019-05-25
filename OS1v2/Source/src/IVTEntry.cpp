@@ -7,8 +7,10 @@ IVTEntry* IVTEntry::allEntries[256] = {0};
 
 IVTEntry::IVTEntry(IVTNo ivtno, pInterrupt inter) {
 #ifndef BCC_BLOCK_IGNORE
+	asm cli;
 	oldRoutine = getvect(ivtno);
 	setvect(ivtno, inter);
+	asm sti;
 #endif
 	IVTEntry::allEntries[ivtno] = this;
 	myNum = ivtno;
@@ -16,7 +18,9 @@ IVTEntry::IVTEntry(IVTNo ivtno, pInterrupt inter) {
 
 IVTEntry::~IVTEntry() {
 #ifndef BCC_BLOCK_IGNORE
+	asm cli;
 	setvect(myNum, oldRoutine);
+	asm sti;
 #endif
 	IVTEntry::allEntries[myNum] = 0;
 }

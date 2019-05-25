@@ -12,6 +12,7 @@
 
 volatile int cpuTime = 0;
 volatile int changeContext = 0;
+volatile int lockCounter = 0;
 
 extern Thread* idleThread;
 

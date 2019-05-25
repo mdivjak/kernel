@@ -7,13 +7,13 @@
 #define BLOCKED 3
 #define TERMINATED 4
 #define KILLED 5
-
+/*
 #define lock asm{\
 	pushf;\
 	cli;\
 };
 #define unlock asm popf;
-
+*/
 typedef unsigned long StackSize;
 typedef unsigned int Time;
 typedef int ID;
@@ -23,6 +23,9 @@ typedef void interrupt (*pInterrupt)(...);
 typedef void (*SignalHandler)();
 typedef unsigned SignalId;
 
+extern volatile int lockCounter;
+void lock();
+void unlock();
 int syncPrintf(const char *format, ...);
 
 #endif

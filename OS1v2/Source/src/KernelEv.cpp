@@ -16,10 +16,12 @@ KernelEv::KernelEv(IVTNo ivtno) {
 
 KernelEv::~KernelEv() {
 	if(blocked != 0) {
-		lock
+
+lock();
 		blocked->status = READY;
 		Scheduler::put(blocked);
-		unlock
+unlock();
+
 		owner = 0;
 		blocked = 0;
 	}
@@ -29,11 +31,13 @@ KernelEv::~KernelEv() {
 void KernelEv::wait() {
 	if(PCB::running != owner) return;
 	if(val == 0) {
-		lock
+
+lock();
 		blocked = owner;
 		blocked->status = BLOCKED;
+unlock();
+
 		dispatch();
-		unlock
 	} else if(val == 1)
 		val = 0;
 }
@@ -41,10 +45,12 @@ void KernelEv::wait() {
 void KernelEv::signal() {
 	if(blocked == 0) val = 1;
 	else {
-		lock
+
+lock();
 		blocked->status = READY;
 		Scheduler::put(blocked);
 		blocked = 0;
-		unlock
+unlock();
+
 	}
 }
